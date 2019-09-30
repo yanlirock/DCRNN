@@ -79,8 +79,6 @@ class DCRNNSupervisor(object):
         null_val = 0.
         self._loss_fn = masked_mae_loss(scaler, null_val)
         self._train_loss = self._loss_fn(preds=preds, labels=labels)
-        
-        self._metric_calculate = calculate_metrics(df_pred, df_test, null_val)
 
         tvars = tf.trainable_variables()
         grads = tf.gradients(self._train_loss, tvars)
@@ -231,7 +229,7 @@ class DCRNNSupervisor(object):
                                                    self._data['val_loader'].get_iterator(),
                                                    training=False)
             val_loss, val_mae = np.asscalar(val_results['loss']), np.asscalar(val_results['mae'])
-            mae_np, mape_np, rmse_np = self._metric_calculate(df_pred=val_results['preds'], df_test=val_results['labels'], null_val=0)
+            mae_np, mape_np, rmse_np = calculate_metrics(df_pred=val_results['preds'], df_test=val_results['labels'], null_val=0)
 
             utils.add_simple_summary(self._writer,
                                      ['loss/train_loss', 'metric/train_mae', 'loss/val_loss', 'metric/val_mae'],
