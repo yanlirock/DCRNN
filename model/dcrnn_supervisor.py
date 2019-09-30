@@ -12,6 +12,7 @@ import yaml
 from lib import utils, metrics
 from lib.AMSGrad import AMSGrad
 from lib.metrics import masked_mae_loss
+from lib.metrics import calculate_metrics
 
 from model.dcrnn_model import DCRNNModel
 
@@ -78,6 +79,8 @@ class DCRNNSupervisor(object):
         null_val = 0.
         self._loss_fn = masked_mae_loss(scaler, null_val)
         self._train_loss = self._loss_fn(preds=preds, labels=labels)
+        
+        self._metric_calculate = calculate_metrics(df_pred, df_test, null_val)
 
         tvars = tf.trainable_variables()
         grads = tf.gradients(self._train_loss, tvars)
@@ -132,10 +135,13 @@ class DCRNNSupervisor(object):
         preds = model.outputs
         labels = model.labels[..., :output_dim]
         loss = self._loss_fn(preds=preds, labels=labels)
+        
         fetches = {
             'loss': loss,
             'mae': loss,
-            'global_step': tf.train.get_or_create_global_step()
+            'global_step': tf.train.get_or_create_global_step(),
+            'preds': preds,
+            'labels':labels
         }
         if training:
             fetches.update({
@@ -167,7 +173,9 @@ class DCRNNSupervisor(object):
 
         results = {
             'loss': np.mean(losses),
-            'mae': np.mean(maes)
+            'mae': np.mean(maes),
+            'preds': preds,
+            'labels':labels
         }
         if return_output:
             results['outputs'] = outputs
@@ -222,14 +230,17 @@ class DCRNNSupervisor(object):
             val_results = self.run_epoch_generator(sess, self._test_model,
                                                    self._data['val_loader'].get_iterator(),
                                                    training=False)
+            
+            mae_np, mape_np, rmse_np = self._metric_calculate(df_pred=val_results['preds'], df_test=val_results['labels']
+            
             val_loss, val_mae = np.asscalar(val_results['loss']), np.asscalar(val_results['mae'])
 
             utils.add_simple_summary(self._writer,
                                      ['loss/train_loss', 'metric/train_mae', 'loss/val_loss', 'metric/val_mae'],
                                      [train_loss, train_mae, val_loss, val_mae], global_step=global_step)
             end_time = time.time()
-            message = 'Epoch [{}/{}] ({}) train_mae: {:.4f}, val_mae: {:.4f} lr:{:.6f} {:.1f}s'.format(
-                self._epoch, epochs, global_step, train_mae, val_mae, new_lr, (end_time - start_time))
+            message = 'Epoch [{}/{}] ({}) train_mae: {:.4f}, val_mae: {:.4f}, val_maenp: {:.4f}, val_mape: {:.4f}, val_rmse: {:.4f}, lr:{:.6f} {:.1f}s'.format(
+                self._epoch, epochs, global_step, train_mae, val_mae, mae_np, mape_np, rmse_np, new_lr, (end_time - start_time))
             self._logger.info(message)
             if self._epoch % test_every_n_epochs == test_every_n_epochs - 1:
                 self.evaluate(sess)
@@ -255,7 +266,9 @@ class DCRNNSupervisor(object):
 
     def evaluate(self, sess, **kwargs):
         global_step = sess.run(tf.train.get_or_create_global_step())
-        test_results = self.run_epoch_generator(sess, self._test_model,
+        test_results = self.
+        
+        (sess, self._test_model,
                                                 self._data['test_loader'].get_iterator(),
                                                 return_output=True,
                                                 training=False)
