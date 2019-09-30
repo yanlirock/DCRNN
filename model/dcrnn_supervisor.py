@@ -172,8 +172,8 @@ class DCRNNSupervisor(object):
         results = {
             'loss': np.mean(losses),
             'mae': np.mean(maes),
-            'preds': preds,
-            'labels':labels
+            'preds': vals['preds'],
+            'labels':vals['labels']
         }
         if return_output:
             results['outputs'] = outputs
