@@ -230,10 +230,8 @@ class DCRNNSupervisor(object):
             val_results = self.run_epoch_generator(sess, self._test_model,
                                                    self._data['val_loader'].get_iterator(),
                                                    training=False)
-            
-            mae_np, mape_np, rmse_np = self._metric_calculate(df_pred=val_results['preds'], df_test=val_results['labels']
-            
             val_loss, val_mae = np.asscalar(val_results['loss']), np.asscalar(val_results['mae'])
+            mae_np, mape_np, rmse_np = self._metric_calculate(df_pred=val_results['preds'], df_test=val_results['labels'])
 
             utils.add_simple_summary(self._writer,
                                      ['loss/train_loss', 'metric/train_mae', 'loss/val_loss', 'metric/val_mae'],
