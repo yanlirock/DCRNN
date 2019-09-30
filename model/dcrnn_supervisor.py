@@ -229,7 +229,11 @@ class DCRNNSupervisor(object):
                                                    self._data['val_loader'].get_iterator(),
                                                    training=False)
             val_loss, val_mae = np.asscalar(val_results['loss']), np.asscalar(val_results['mae'])
-            mae_np, mape_np, rmse_np = calculate_metrics(df_pred=val_results['preds'], df_test=val_results['labels'], null_val=0)
+            scaler = self._data['scaler']
+            val_predict = scaler.inverse_transform(val_results['preds'])
+            val_truth = scaler.inverse_transform(val_results['labels'])
+            
+            mae_np, mape_np, rmse_np = calculate_metrics(df_pred=val_predict, df_test=val_truth, null_val=0)
 
             utils.add_simple_summary(self._writer,
                                      ['loss/train_loss', 'metric/train_mae', 'loss/val_loss', 'metric/val_mae'],
