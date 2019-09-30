@@ -130,7 +130,7 @@ def masked_mae_loss(scaler, null_val):
     return loss
 
 
-def calculate_metrics(df_pred, df_test, null_val):
+def calculate_metrics_from_df(df_pred, df_test, null_val):
     """
     Calculate the MAE, MAPE, RMSE
     :param df_pred:
@@ -141,4 +141,17 @@ def calculate_metrics(df_pred, df_test, null_val):
     mape = masked_mape_np(preds=df_pred.as_matrix(), labels=df_test.as_matrix(), null_val=null_val)
     mae = masked_mae_np(preds=df_pred.as_matrix(), labels=df_test.as_matrix(), null_val=null_val)
     rmse = masked_rmse_np(preds=df_pred.as_matrix(), labels=df_test.as_matrix(), null_val=null_val)
+    return mae, mape, rmse
+
+def calculate_metrics(df_pred, df_test, null_val):
+    """
+    Calculate the MAE, MAPE, RMSE
+    :param df_pred:
+    :param df_test:
+    :param null_val:
+    :return:
+    """
+    mape = masked_mape_np(preds=df_pred, labels=df_test, null_val=null_val)
+    mae = masked_mae_np(preds=df_pred, labels=df_test, null_val=null_val)
+    rmse = masked_rmse_np(preds=df_pred, labels=df_test, null_val=null_val)
     return mae, mape, rmse
