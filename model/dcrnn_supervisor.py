@@ -231,7 +231,7 @@ class DCRNNSupervisor(object):
                                                    self._data['val_loader'].get_iterator(),
                                                    training=False)
             val_loss, val_mae = np.asscalar(val_results['loss']), np.asscalar(val_results['mae'])
-            mae_np, mape_np, rmse_np = self._metric_calculate(df_pred=val_results['preds'], df_test=val_results['labels'])
+            mae_np, mape_np, rmse_np = self._metric_calculate(df_pred=val_results['preds'], df_test=val_results['labels'], null_val=0)
 
             utils.add_simple_summary(self._writer,
                                      ['loss/train_loss', 'metric/train_mae', 'loss/val_loss', 'metric/val_mae'],
@@ -264,9 +264,7 @@ class DCRNNSupervisor(object):
 
     def evaluate(self, sess, **kwargs):
         global_step = sess.run(tf.train.get_or_create_global_step())
-        test_results = self.
-        
-        (sess, self._test_model,
+        test_results = self.run_epoch_generator(sess, self._test_model,
                                                 self._data['test_loader'].get_iterator(),
                                                 return_output=True,
                                                 training=False)
